@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오픈클로 블로그 자동화 매뉴얼 — 홈</title>
+<style>
+*{box-sizing:border-box;}
+body{margin:0; background:#f6f7f9; color:#1f2430;
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;}
+header.top{height:60px; display:flex; align-items:center; gap:16px; padding:0 18px;
+  background:#fff; border-bottom:1px solid #e5e7eb; position:sticky; top:0; z-index:10;}
+.brand{font-weight:800; font-size:16px;} .brand a{color:#1f2430; text-decoration:none;}
+nav.tabs{display:flex; gap:4px; overflow-x:auto;}
+nav.tabs a{text-decoration:none; color:#6b7280; font-size:14px; font-weight:600; padding:8px 13px; border-radius:9px; white-space:nowrap;}
+nav.tabs a:hover{background:#f1f5f9; color:#1f2430;}
+nav.tabs a.active{background:#e2e8f0; color:#0f172a;}
+.hero{text-align:center; padding:64px 20px 30px;}
+.hero h1{font-size:34px; margin:0 0 12px;}
+.hero p{color:#6b7280; font-size:17px; margin:0 auto; max-width:640px; line-height:1.7;}
+.wrap{max-width:1000px; margin:0 auto; padding:10px 20px 80px;}
+.section-label{font-size:13px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:.05em; margin:34px 6px 14px;}
+.cards{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+.cards.sec{grid-template-columns:repeat(2,1fr); max-width:660px;}
+.card{display:block; text-decoration:none; color:inherit; background:#fff; border:1px solid #e5e7eb;
+  border-top:4px solid var(--c); border-radius:16px; padding:26px 22px; transition:transform .15s, box-shadow .15s;}
+.card:hover{transform:translateY(-4px); box-shadow:0 12px 30px rgba(0,0,0,.10);}
+.card .emoji{font-size:34px;}
+.card h3{margin:.5em 0 .35em; font-size:20px;}
+.card p{margin:0 0 16px; color:#6b7280; font-size:14px; line-height:1.6; min-height:44px;}
+.card .go{font-weight:700; color:var(--c); font-size:14px;}
+.note{margin-top:40px; background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:20px 24px; color:#4b5563; font-size:14.5px; line-height:1.8;}
+.note b{color:#1f2430;}
+footer{text-align:center; color:#9ca3af; font-size:13px; padding:30px;}
+@media (max-width:760px){.cards,.cards.sec{grid-template-columns:1fr;} .hero h1{font-size:26px;}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><a href="index.html">🦅 오픈클로 매뉴얼</a></div>
+  <nav class="tabs"><a href="index.html" class="active">홈</a><a href="tistory.html">🟦 티스토리</a><a href="naver.html">🟩 네이버</a><a href="blogger.html">🟠 구글 블로거</a><a href="manual.html">📖 기술 배경</a></nav>
+</header>
+<div class="hero">
+  <h1>🦅 오픈클로로 배우는 블로그 자동화</h1>
+  <p>코딩을 몰라도 괜찮아요. <b>오픈클로(openclaw)에게 한국어로 시켜서</b> 블로그 글쓰기를 자동화하는 노코드 실습 매뉴얼입니다. 배우고 싶은 플랫폼을 고르세요.</p>
+</div>
+<div class="wrap">
+  <div class="section-label">플랫폼별 실습 워크북</div>
+  <div class="cards">
+      <a class="card big" href="tistory.html" style="--c:#2563eb;--cs:#eff6ff">
+        <div class="emoji">🟦</div>
+        <h3>티스토리</h3>
+        <p>국내 입문용. 카카오 로그인 + 쿠키 재사용으로 자동 발행.</p>
+        <span class="go">시작하기 →</span>
+      </a>
+      <a class="card big" href="naver.html" style="--c:#16a34a;--cs:#f0fdf4">
+        <div class="emoji">🟩</div>
+        <h3>네이버</h3>
+        <p>난이도 최상. 캡차·이중 iframe을 쿠키 재사용으로 돌파.</p>
+        <span class="go">시작하기 →</span>
+      </a>
+      <a class="card big" href="blogger.html" style="--c:#ea580c;--cs:#fff3ed">
+        <div class="emoji">🟠</div>
+        <h3>구글 블로거</h3>
+        <p>가장 안정적. 공식 API(OAuth)라 캡차 걱정이 적음.</p>
+        <span class="go">시작하기 →</span>
+      </a>
+  </div>
+  <div class="section-label">심화 자료</div>
+  <div class="cards sec">
+      <a class="card" href="manual.html" style="--c:#475569;--cs:#f1f5f9">
+        <div class="emoji">📖</div>
+        <h3>기술 배경</h3>
+        <p>세 플랫폼의 원리·구조를 정리한 심화 참고서.</p>
+        <span class="go">시작하기 →</span>
+      </a>
+  </div>
+  <div class="note">
+    <b>처음이신가요?</b> 가장 쉬운 <b>구글 블로거 편</b>부터 시작하는 걸 추천합니다(공식 API라 캡차가 거의 없어요).
+    국내 블로그가 목표라면 <b>티스토리 편</b>, 네이버가 꼭 필요하면 난이도가 높은 <b>네이버 편</b>으로 가세요.<br>
+    🧭 모든 워크북은 <b>📋명령 → ✅성공 확인 → 🛟막히면</b> 순서로 따라하면 됩니다.
+  </div>
+</div>
+<footer>openclaw 교육용 매뉴얼 · 연습은 비공개 글로, 본인 계정으로 소량만 — 자동화 운영 책임은 본인에게 있습니다.</footer>
+</body>
+</html>

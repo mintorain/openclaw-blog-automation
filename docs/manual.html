@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기술 배경 편 · 오픈클로 블로그 자동화 매뉴얼</title>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#1f2430;
+  --muted:#6b7280; --line:#e5e7eb; --brand:#475569; --brand-soft:#f1f5f9;
+  --code-bg:#0f172a; --code-ink:#e2e8f0; --sidebar-w:300px; --header-h:60px;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+  font-size:16px; line-height:1.75; -webkit-font-smoothing:antialiased;}
+header.top{position:fixed; top:0; left:0; right:0; height:var(--header-h); z-index:30;
+  display:flex; align-items:center; gap:16px; padding:0 18px;
+  background:var(--panel); border-bottom:1px solid var(--line);}
+.burger{display:none; border:0; background:transparent; font-size:22px; cursor:pointer; color:var(--ink);}
+.brand{font-weight:800; font-size:16px; white-space:nowrap;}
+.brand a{color:var(--ink); text-decoration:none;}
+nav.tabs{display:flex; gap:4px; overflow-x:auto;}
+nav.tabs a{text-decoration:none; color:var(--muted); font-size:14px; font-weight:600;
+  padding:8px 13px; border-radius:9px; white-space:nowrap;}
+nav.tabs a:hover{background:#f1f5f9; color:var(--ink);}
+nav.tabs a.active{background:var(--brand-soft); color:var(--brand);}
+.search-wrap{margin-left:auto;}
+#search{width:210px; max-width:42vw; padding:8px 12px; border:1px solid var(--line);
+  border-radius:10px; font-size:14px; background:#fafafa;}
+#search:focus{outline:2px solid var(--brand-soft); border-color:var(--brand);}
+.layout{display:flex; padding-top:var(--header-h);}
+aside{position:fixed; top:var(--header-h); bottom:0; left:0; width:var(--sidebar-w);
+  overflow-y:auto; background:var(--panel); border-right:1px solid var(--line); padding:18px 10px 60px;}
+.aside-title{font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase;
+  letter-spacing:.04em; padding:0 12px 8px;}
+main{margin-left:var(--sidebar-w); flex:1; min-width:0; padding:34px clamp(18px,5vw,64px) 120px; max-width:920px;}
+.toc{list-style:none; margin:0; padding:0;}
+.toc li{margin:0;}
+.toc-link{display:block; text-decoration:none; color:var(--muted); font-size:13px;
+  padding:6px 12px 6px 14px; border-left:2px solid transparent; border-radius:0 6px 6px 0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.toc-link:hover{color:var(--brand); background:var(--brand-soft);}
+.toc-link.current{color:var(--brand); border-left-color:var(--brand); background:var(--brand-soft); font-weight:600;}
+.toc li.nomatch{display:none;}
+.doc h1{font-size:30px; line-height:1.3; margin:.1em 0 .6em; padding-bottom:.3em; border-bottom:3px solid var(--brand);}
+.doc h2{font-size:23px; margin:1.9em 0 .6em; border-top:1px solid var(--line); padding-top:1.2em;}
+.doc h3{font-size:18.5px; margin:1.4em 0 .5em; color:#374151;}
+.doc h4{font-size:16px; margin:1.1em 0 .4em; color:#4b5563;}
+.doc p{margin:.7em 0;} .doc a{color:var(--brand);}
+.doc ul,.doc ol{padding-left:1.4em;} .doc li{margin:.25em 0;}
+.doc hr{border:0; border-top:1px solid var(--line); margin:2.2em 0;}
+.doc code{background:#eef1f5; color:#b91c1c; padding:.12em .4em; border-radius:5px; font-size:.9em;
+  font-family:"SFMono-Regular",Consolas,Menlo,monospace;}
+.doc pre{background:var(--code-bg); color:var(--code-ink); padding:16px 18px; border-radius:12px;
+  overflow-x:auto; line-height:1.55; font-size:13.5px;}
+.doc pre code{background:transparent; color:inherit; padding:0;}
+.doc table{border-collapse:collapse; width:100%; margin:1.1em 0; font-size:14.5px; display:block; overflow-x:auto;}
+.doc th,.doc td{border:1px solid var(--line); padding:9px 12px; text-align:left; vertical-align:top;}
+.doc thead th{background:#f3f4f6; font-weight:700;}
+.doc tbody tr:nth-child(even){background:#fafafa;}
+.doc blockquote{margin:1.1em 0; padding:12px 16px; border-left:5px solid var(--muted);
+  background:#f8fafc; border-radius:0 10px 10px 0;}
+.doc blockquote p{margin:.35em 0;}
+.doc blockquote.cmd{border-color:#2563eb; background:#eff6ff;}
+.doc blockquote.ok{border-color:#16a34a; background:#f0fdf4;}
+.doc blockquote.warn{border-color:#d97706; background:#fffbeb;}
+.doc blockquote.tip{border-color:#7c3aed; background:#f5f3ff;}
+.doc blockquote.help{border-color:#dc2626; background:#fef2f2;}
+.doc blockquote.note{border-color:#0891b2; background:#ecfeff;}
+mark.hit{background:#fde68a; padding:0 1px; border-radius:3px;}
+#toTop{position:fixed; right:20px; bottom:20px; z-index:25; display:none; border:0;
+  background:var(--brand); color:#fff; width:46px; height:46px; border-radius:50%;
+  font-size:20px; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.18);}
+.no-result{color:var(--muted); font-size:13px; padding:8px 12px; display:none;}
+#backdrop{display:none;}
+@media (max-width:880px){
+  :root{--sidebar-w:280px;}
+  .burger{display:block;} .brand{font-size:14px;}
+  aside{transform:translateX(-100%); transition:transform .25s ease; z-index:40; box-shadow:0 0 30px rgba(0,0,0,.15);}
+  body.nav-open aside{transform:translateX(0);}
+  main{margin-left:0; padding:24px 18px 100px;}
+  body.nav-open #backdrop{display:block; position:fixed; inset:var(--header-h) 0 0 0; background:rgba(0,0,0,.35); z-index:35;}
+  #search{width:130px;}
+}
+@media print{header.top,aside,#toTop{display:none!important;} main{margin:0; max-width:none;}}
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="burger" id="burger" aria-label="메뉴">☰</button>
+  <div class="brand"><a href="index.html">🦅 오픈클로 매뉴얼</a></div>
+  <nav class="tabs"><a href="index.html">홈</a><a href="tistory.html">🟦 티스토리</a><a href="naver.html">🟩 네이버</a><a href="blogger.html">🟠 구글 블로거</a><a href="manual.html" class="active">📖 기술 배경</a></nav>
+  <div class="search-wrap"><input id="search" type="search" placeholder="🔍 목차 검색…" autocomplete="off"></div>
+</header>
+<div class="layout">
+  <aside id="sidebar">
+    <div class="aside-title">목차</div>
+    <div id="noResult" class="no-result">검색 결과가 없습니다.</div>
+    <ul class="toc"><li><a class="toc-link" href="#0-시작하기-전에--핵심-요약">0. 시작하기 전에 — 핵심 요약</a></li><li><a class="toc-link" href="#1-openclaw란-무엇이고-어떻게-명령하나">1. openclaw란 무엇이고
+어떻게 명령하나</a></li><li><a class="toc-link" href="#2-사전-준비-공통">2. 사전 준비 (공통)</a></li><li><a class="toc-link" href="#3-티스토리-자동-포스팅">3. 티스토리 자동 포스팅</a></li><li><a class="toc-link" href="#4-네이버-블로그-자동-포스팅">4. 네이버 블로그 자동 포스팅</a></li><li><a class="toc-link" href="#5-스케줄링정기-자동-발행">5. 스케줄링(정기 자동 발행)</a></li><li><a class="toc-link" href="#6-전체-워크플로우-한눈에-보기">6. 전체 워크플로우 한눈에
+보기</a></li><li><a class="toc-link" href="#7-자주-막히는-지점--openclaw-디버깅-명령">7. 자주 막히는 지점
+&amp;amp; openclaw 디버깅 명령</a></li><li><a class="toc-link" href="#8-법적윤리적-유의사항">8. 법적·윤리적 유의사항</a></li><li><a class="toc-link" href="#참고-자료-웹-검색-출처">참고 자료 (웹 검색 출처)</a></li></ul>
+  </aside>
+  <div id="backdrop"></div>
+  <main><section class="doc"><h1
+id="openclaw로-만드는-티스토리네이버-블로그-포스팅-자동화-매뉴얼">openclaw로
+만드는 티스토리·네이버 블로그 포스팅 자동화 매뉴얼</h1>
+<blockquote>
+<p>AI 에이전트 <strong>openclaw</strong>에게 자연어 명령을 주어,
+티스토리와 네이버 블로그 포스팅을 자동화하는 전체 가이드입니다. 코드를
+직접 짜지 않아도, 아래 명령 흐름대로 지시하면 openclaw가 자동화
+스크립트를 생성·실행합니다.</p>
+</blockquote>
+<p><strong>최종 업데이트:</strong> 2026-06-13</p>
+<hr />
+<h2 id="0-시작하기-전에--핵심-요약">0. 시작하기 전에 — 핵심 요약</h2>
+<table>
+<thead>
+<tr>
+<th>플랫폼</th>
+<th>공식 API</th>
+<th>2026년 현재 권장 방식</th>
+<th>난이도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>티스토리</strong></td>
+<td>❌ Open API 종료(2024년 초 순차 종료)</td>
+<td>Selenium 브라우저 자동화 + (선택) ChatGPT API로 본문 생성</td>
+<td>중</td>
+</tr>
+<tr>
+<td><strong>네이버 블로그</strong></td>
+<td>❌ 글쓰기용 공식 API 없음</td>
+<td>Selenium + 쿠키 기반 로그인 유지(SmartEditor iframe 제어)</td>
+<td>상</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⚠️ <strong>중요:</strong> 두 플랫폼 모두 "글쓰기/발행" 공식 API가
+사실상 없습니다. 따라서 자동화의 핵심은 <strong>브라우저 자동화(Selenium
+/ Playwright)</strong> 입니다. openclaw에게는 "어떤 동작을 자동화할지"를
+자연어로 지시하면 됩니다.</p>
+</blockquote>
+<hr />
+<h2 id="1-openclaw란-무엇이고-어떻게-명령하나">1. openclaw란 무엇이고
+어떻게 명령하나</h2>
+<p>openclaw는 터미널에서 동작하는 AI 코딩 에이전트입니다. 자연어 명령을
+받으면:</p>
+<ol type="1">
+<li>자동화 스크립트(Python/Node)를 <strong>생성</strong>하고</li>
+<li>필요한 패키지를 <strong>설치</strong>하고</li>
+<li>스크립트를 <strong>실행</strong>해 결과를 알려줍니다.</li>
+</ol>
+<h3 id="명령프롬프트을-잘-주는-3원칙">명령(프롬프트)을 잘 주는
+3원칙</h3>
+<ol type="1">
+<li><strong>목표를 한 문장으로</strong>: "티스토리에 매일 1개 글을 자동
+발행하고 싶어"</li>
+<li><strong>입력/출력을 명시</strong>: "본문은 <code>posts/</code>
+폴더의 <code>.md</code> 파일에서 읽어와"</li>
+<li><strong>제약을 명시</strong>: "하루 3개까지만, 발행 간격은 2시간
+이상으로"</li>
+</ol>
+<hr />
+<h2 id="2-사전-준비-공통">2. 사전 준비 (공통)</h2>
+<p>openclaw에게 아래처럼 환경 세팅을 먼저 지시합니다.</p>
+<pre><code>명령 예시 ▶
+&quot;이 프로젝트에 Python 가상환경을 만들고 selenium, webdriver-manager,
+python-dotenv 패키지를 설치해줘. 그리고 .env 파일에 블로그 계정 정보를
+넣을 수 있게 .env.example 템플릿을 만들어줘.&quot;</code></pre>
+<p>생성될 <code>.env.example</code> 예시:</p>
+<pre class="ini"><code># 절대 깃에 커밋하지 말 것 (.gitignore에 .env 추가)
+TISTORY_ID=your_id
+TISTORY_PW=your_password
+TISTORY_BLOG_NAME=yourblog   # yourblog.tistory.com 의 yourblog 부분
+
+NAVER_ID=your_id
+NAVER_PW=your_password
+
+OPENAI_API_KEY=sk-...        # (선택) 본문 자동 생성용</code></pre>
+<blockquote>
+<p>🔐 <strong>보안 원칙</strong></p>
+<ul>
+<li>계정 비밀번호·API 키는 <strong>반드시 환경변수(.env)</strong> 로
+관리하고 코드에 하드코딩하지 않습니다.</li>
+<li><code>.env</code>는 <code>.gitignore</code>에 추가해 깃 저장소에
+올라가지 않게 합니다.</li>
+<li>2차 인증(2FA)이 켜져 있으면 자동 로그인이 막히므로, 자동화 전용 계정
+또는 앱 비밀번호 사용을 검토하세요.</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="3-티스토리-자동-포스팅">3. 티스토리 자동 포스팅</h2>
+<h3 id="3-1-왜-api가-아니라-브라우저-자동화인가">3-1. 왜 API가 아니라
+브라우저 자동화인가</h3>
+<p>티스토리 Open API는 2024년 초에 순차 종료되어, 외부 프로그램이
+토큰으로 글을 올리던 방식은 더 이상 동작하지 않습니다. 따라서 2026년
+현재는 <strong>실제 사람이 브라우저를 쓰듯</strong> 로그인 → 글쓰기 →
+발행을 자동화하는 Selenium 방식이 표준입니다.</p>
+<blockquote>
+<p>참고: 과거 API
+방식(<code>https://www.tistory.com/apis/post/write</code>)은 historical
+자료로만 의미가 있습니다.</p>
+</blockquote>
+<h3 id="3-2-openclaw-명령-흐름">3-2. openclaw 명령 흐름</h3>
+<p><strong>1단계 — 골격 생성</strong></p>
+<pre><code>&quot;selenium으로 티스토리에 자동 로그인하는 스크립트를 만들어줘.
+.env의 TISTORY_ID/PW를 읽어서 카카오 계정 로그인 페이지를 처리하고,
+로그인 성공 여부를 콘솔에 출력해줘.&quot;</code></pre>
+<p><strong>2단계 — 글쓰기 자동화</strong></p>
+<pre><code>&quot;로그인된 상태에서 https://{블로그명}.tistory.com/manage/newpost/ 로 이동해서
+제목과 본문을 입력하고 발행하는 기능을 추가해줘.
+티스토리 에디터는 iframe 기반이니 iframe 전환 처리도 넣어줘.&quot;</code></pre>
+<p><strong>3단계 — 입력 데이터 연결</strong></p>
+<pre><code>&quot;posts/ 폴더의 마크다운 파일을 하나씩 읽어서,
+첫 줄(# 제목)을 글 제목으로, 나머지를 본문으로 발행하도록 해줘.
+발행한 파일은 posts/done/ 으로 옮겨줘.&quot;</code></pre>
+<h3
+id="3-3-티스토리-자동화-핵심-포인트-openclaw에게-알려줄-기술-정보">3-3.
+티스토리 자동화 핵심 포인트 (openclaw에게 알려줄 기술 정보)</h3>
+<ul>
+<li><strong>로그인</strong>: 티스토리는 카카오 계정 로그인으로 통합됨 →
+카카오 로그인 폼(<code>#loginId</code>, <code>#password</code>) 입력 후
+제출.</li>
+<li><strong>에디터 iframe</strong>: 글쓰기 에디터가
+<code>&lt;iframe&gt;</code> 내부에 있음 →
+<code>driver.switch_to.frame(...)</code> 후 본문 입력, 끝나면
+<code>switch_to.default_content()</code>.</li>
+<li><strong>HTML 모드 활용</strong>: 마크다운/HTML 본문을 넣을 땐
+에디터를 "HTML 모드"로 전환하면 서식이 안정적.</li>
+<li><strong>발행 옵션</strong>: 공개(발행)/비공개/보호, 카테고리, 태그를
+발행 직전 모달에서 설정.</li>
+<li><strong>임시저장 팝업</strong>: 글쓰기 진입 시 "이어쓰기" 팝업이 뜰
+수 있으니 자동으로 닫는 처리 필요.</li>
+</ul>
+<h3 id="3-4-선택-본문-자동-생성-결합">3-4. (선택) 본문 자동 생성
+결합</h3>
+<pre><code>&quot;OpenAI API(OPENAI_API_KEY)를 사용해서, 키워드 목록 keywords.txt의 각 줄을
+주제로 1500자 분량 블로그 글을 생성하고, 그걸 바로 티스토리에 발행하는
+파이프라인으로 연결해줘.&quot;</code></pre>
+<blockquote>
+<p>⚠️ <strong>품질 관리:</strong> 하루 3~5개 수준의 발행은 비교적
+안전하지만, 단기간 수십 건 대량 발행은 검색엔진 저품질(스팸) 판정 위험이
+있습니다. 발행 간격(예: 2시간 이상)을 두도록 지시하세요.</p>
+</blockquote>
+<hr />
+<h2 id="4-네이버-블로그-자동-포스팅">4. 네이버 블로그 자동 포스팅</h2>
+<blockquote>
+<p>네이버는 자동화 탐지(캡차)가 강력합니다. 티스토리보다 까다로우므로
+<strong>쿠키 기반 로그인 유지</strong>가 핵심입니다.</p>
+</blockquote>
+<h3 id="4-1-가장-큰-장벽-캡차captcha">4-1. 가장 큰 장벽:
+캡차(CAPTCHA)</h3>
+<ul>
+<li>네이버는 프로그램적 로그인을 막기 위해 캡차를 띄웁니다.</li>
+<li><strong>캡차를 코드로 푸는 현실적 방법은 없습니다.</strong> → 캡차가
+<strong>안 뜨게</strong> 하는 전략을 씁니다.</li>
+<li>권장 전략:
+<ol type="1">
+<li><strong>쿠키 재사용</strong>: 사람이 한 번 정상 로그인한 세션의
+쿠키를 저장 → 이후 자동화는 그 쿠키로 로그인 상태 유지.</li>
+<li><strong>사용자 프로필 로딩</strong>: 평소 쓰던 크롬
+프로필(<code>--user-data-dir</code>)을 그대로 띄워 이미 로그인된 상태로
+시작.</li>
+<li><strong>봇 탐지 우회 옵션</strong>: <code>navigator.webdriver</code>
+플래그 제거 등 자동화 흔적 최소화.</li>
+</ol></li>
+</ul>
+<h3 id="4-2-openclaw-명령-흐름">4-2. openclaw 명령 흐름</h3>
+<p><strong>1단계 — 쿠키 확보</strong></p>
+<pre><code>&quot;크롬을 사람이 쓰는 프로필로 실행해서 네이버에 수동 로그인할 수 있게 해주고,
+로그인 완료되면 쿠키를 cookies.json으로 저장하는 스크립트를 만들어줘.&quot;</code></pre>
+<p><strong>2단계 — 쿠키로 자동 로그인</strong></p>
+<pre><code>&quot;cookies.json을 불러와서 네이버에 로그인된 상태로 시작하는 코드를 만들어줘.
+캡차를 피하기 위해 navigator.webdriver 플래그를 숨기는 옵션도 적용해줘.&quot;</code></pre>
+<p><strong>3단계 — 글쓰기(SmartEditor)</strong></p>
+<pre><code>&quot;네이버 블로그 글쓰기 페이지(https://blog.naver.com/{아이디}?Redirect=Write)로 이동해서
+제목과 본문을 입력하고 발행하는 기능을 추가해줘.
+SmartEditor는 iframe(mainFrame) 안에 또 에디터 iframe이 중첩돼 있으니
+프레임 전환을 단계적으로 처리해줘.&quot;</code></pre>
+<h3 id="4-3-네이버-자동화-핵심-포인트">4-3. 네이버 자동화 핵심
+포인트</h3>
+<ul>
+<li><strong>중첩 iframe</strong>: 글쓰기 화면은 <code>#mainFrame</code>
+안에 SmartEditor가 들어있는 <strong>이중 iframe 구조</strong>. 프레임
+전환을 정확히 해야 본문 입력이 됩니다.</li>
+<li><strong>작성 중 팝업</strong>: "작성 중인 글이 있습니다" 복구 팝업 →
+자동으로 닫기.</li>
+<li><strong>본문 입력 방식</strong>: SmartEditor는 일반
+<code>input</code>이 아니라 contenteditable 영역 → 클릭 후
+<code>send_keys</code> 또는 JS로 입력.</li>
+<li><strong>발행 모달</strong>: 발행 버튼 클릭 → 카테고리·공개설정·태그
+입력하는 2차 모달 처리.</li>
+<li><strong>속도 조절</strong>: 사람처럼 보이도록 입력 사이에 랜덤
+딜레이(예: 0.5~2초) 삽입 → 탐지 회피에 유리.</li>
+</ul>
+<h3 id="4-4-주의사항">4-4. 주의사항</h3>
+<ul>
+<li>네이버 약관상 자동화는 제재(계정 정지) 대상이 될 수 있습니다.
+<strong>본인 계정·소량 운영</strong> 원칙을 지키세요.</li>
+<li>2FA(2단계 인증)가 켜져 있으면 쿠키 방식이 사실상 유일한 현실적
+해법입니다.</li>
+<li>캡차가 뜨면 자동화는 중단하고 사람이 1회 풀어준 뒤 쿠키를 갱신하는
+흐름이 안정적입니다.</li>
+</ul>
+<hr />
+<h2 id="5-스케줄링정기-자동-발행">5. 스케줄링(정기 자동 발행)</h2>
+<pre><code>명령 예시 ▶
+&quot;이 발행 스크립트를 매일 오전 9시에 자동 실행되게 설정하고 싶어.
+macOS면 launchd 또는 cron, 크로스플랫폼이면 python schedule 라이브러리로
+해줘. 실패하면 로그를 logs/ 폴더에 남기게 해줘.&quot;</code></pre>
+<ul>
+<li><strong>간단/상시 실행</strong>: Python <code>schedule</code>
+라이브러리로 스크립트 내부 스케줄링.</li>
+<li><strong>OS 레벨</strong>: macOS
+<code>cron</code>/<code>launchd</code>, Windows 작업 스케줄러.</li>
+<li><strong>로그 필수</strong>: 성공/실패, 발행 URL을 로그로 남겨
+추적.</li>
+</ul>
+<hr />
+<h2 id="6-전체-워크플로우-한눈에-보기">6. 전체 워크플로우 한눈에
+보기</h2>
+<pre><code>[키워드/원고 준비]
+        │
+        ▼
+(선택) openclaw + OpenAI API → 본문 자동 생성
+        │
+        ▼
+openclaw가 생성한 Selenium 스크립트
+        │
+   ┌────┴─────┐
+   ▼          ▼
+티스토리      네이버
+(iframe       (쿠키 로그인 +
+ 에디터)       중첩 iframe)
+   │          │
+   └────┬─────┘
+        ▼
+   발행 + 로그 기록
+        │
+        ▼
+   스케줄러로 정기 반복</code></pre>
+<hr />
+<h2 id="7-자주-막히는-지점--openclaw-디버깅-명령">7. 자주 막히는 지점
+&amp; openclaw 디버깅 명령</h2>
+<table>
+<thead>
+<tr>
+<th>증상</th>
+<th>원인</th>
+<th>openclaw에게 줄 명령</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>본문 입력이 안 됨</td>
+<td>iframe 전환 누락</td>
+<td>"글쓰기 에디터가 iframe 안에 있어. 프레임 전환 로직을 점검하고
+본문이 입력되는지 스크린샷을 찍어 확인해줘."</td>
+</tr>
+<tr>
+<td>로그인 직후 캡차</td>
+<td>자동화 탐지</td>
+<td>"캡차가 떴어. 쿠키 기반 로그인 방식으로 바꾸고 webdriver 흔적을
+숨겨줘."</td>
+</tr>
+<tr>
+<td>요소를 못 찾음</td>
+<td>셀렉터 변경</td>
+<td>"NoSuchElement 에러가 나. 현재 페이지 HTML을 덤프해서 올바른
+셀렉터를 다시 찾아줘."</td>
+</tr>
+<tr>
+<td>가끔 실패(타이밍)</td>
+<td>로딩 대기 부족</td>
+<td>"암묵적 대기 대신 WebDriverWait 명시적 대기로 바꿔줘."</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="8-법적윤리적-유의사항">8. 법적·윤리적 유의사항</h2>
+<ul>
+<li>각 플랫폼의 <strong>이용약관</strong>과 <strong>robots
+정책</strong>을 확인하세요. 과도한 자동화는 계정 제재 사유입니다.</li>
+<li>타인 콘텐츠 복제·대량 스팸성 발행은 저작권/저품질 문제를
+일으킵니다.</li>
+<li>자동화는 <strong>반복 작업 효율화</strong> 목적에 한정하고, 운영은
+본인 책임입니다.</li>
+</ul>
+<hr />
+<h2 id="참고-자료-웹-검색-출처">참고 자료 (웹 검색 출처)</h2>
+<ul>
+<li><a href="https://techbukket.com/blog/tistory-api-python">티스토리
+API와 python으로 블로그 글쓰기 — 테크버킷 블로그</a></li>
+<li><a
+href="https://health.solbangwulwebsite.com/entry/%ED%8B%B0%EC%8A%A4%ED%86%A0%EB%A6%AC-%EC%9E%90%EB%8F%99-%ED%8F%AC%EC%8A%A4%ED%8C%85-%EA%B0%80%EB%8A%A5%ED%95%A0%EA%B9%8C-%EA%B0%80%EB%8A%A5%ED%95%9C-%EB%B0%A9%EB%B2%95-100-%EC%8B%A4%EC%A0%84-%EC%A0%95%EB%A6%AC">티스토리
+자동 포스팅 가능할까? 가능한 방법 100% 실전 정리</a></li>
+<li><a
+href="https://health.solbangwulwebsite.com/entry/ChatGPT-API%EB%A1%9C-%ED%8B%B0%EC%8A%A4%ED%86%A0%EB%A6%AC-%EC%9E%90%EB%8F%99-%ED%8F%AC%EC%8A%A4%ED%8C%85-%EC%99%84%EC%84%B1%ED%95%98%EB%8A%94-%EB%B2%95-2025-%EC%B5%9C%EC%8B%A0-%EA%B0%80%EC%9D%B4%EB%93%9C">ChatGPT
+API로 티스토리 자동 포스팅 완성하는 법 (2025)</a></li>
+<li><a
+href="https://velog.io/@kimjihong/python-%EB%84%A4%EC%9D%B4%EB%B2%84-%EB%B8%94%EB%A1%9C%EA%B7%B8%EC%9A%A9-%EC%9E%90%EB%8F%99-%EB%A7%A4%ED%81%AC%EB%A1%9C-%EC%A0%9C%EC%9E%91%EA%B8%B0-230627-selenium-%EA%B3%BC-BeautifulSoup">python
+네이버 블로그용 자동 매크로 제작기 (Selenium + BeautifulSoup) —
+velog</a></li>
+<li><a
+href="https://medium.com/@zective/selenium-%EB%84%A4%EC%9D%B4%EB%B2%84-%EB%A1%9C%EA%B7%B8%EC%9D%B8%EC%8B%9C-%EC%BA%A1%EC%B1%A0-%ED%8C%A8%EC%8A%A4-11221379b661">Selenium
+자동화 브라우저에 사용자 환경(프로필) 불러오기 — Medium</a></li>
+<li><a
+href="https://pythondocs.net/selenium/%EC%85%80%EB%A0%88%EB%8B%88%EC%9B%80-%EC%9B%B9-%ED%81%AC%EB%A1%A4%EB%A7%81-%EB%B4%87-%ED%83%90%EC%A7%80-%EC%9A%B0%ED%9A%8C-2%ED%83%84/">셀레니움
+웹 크롤링 봇 탐지 우회 — 네이버 로그인 캡차 피하기</a></li>
+<li><a href="https://hyrama.com/?p=693">Selenium 캡차(Captcha) 무력화 —
+히라마 블로그</a></li>
+<li><a
+href="https://precioustar.github.io/Selenium-3-.AutomatedTesting/">Selenium을
+이용한 자동 로그인 &amp; 글쓰기 구현 — 박성진 기술 블로그</a></li>
+<li><a href="https://github.com/lushlife99/automation-naver-blog">네이버
+블로그 공감·댓글·서이추 자동화 with Selenium — GitHub</a></li>
+</ul>
+</section></main>
+</div>
+<button id="toTop" title="맨 위로">↑</button>
+<script>
+(function(){
+  "use strict";
+  var body=document.body;
+  document.querySelectorAll('.doc blockquote').forEach(function(bq){
+    var t=(bq.textContent||'').trim();
+    if(t.indexOf('📋')===0) bq.classList.add('cmd');
+    else if(t.indexOf('✅')===0) bq.classList.add('ok');
+    else if(t.indexOf('⚠️')===0||t.indexOf('🚨')===0) bq.classList.add('warn');
+    else if(t.indexOf('💡')===0||t.indexOf('📌')===0) bq.classList.add('tip');
+    else if(t.indexOf('🛟')===0||t.indexOf('🆘')===0) bq.classList.add('help');
+    else if(t.indexOf('📚')===0||t.indexOf('🧪')===0||t.indexOf('🖱️')===0) bq.classList.add('note');
+  });
+  document.querySelectorAll('.toc-link').forEach(function(link){
+    link.addEventListener('click', function(e){
+      e.preventDefault();
+      var target=document.getElementById(link.getAttribute('href').slice(1));
+      if(target){ var y=target.getBoundingClientRect().top+window.pageYOffset-78; window.scrollTo({top:y,behavior:'smooth'}); }
+      body.classList.remove('nav-open');
+    });
+  });
+  var search=document.getElementById('search'), noResult=document.getElementById('noResult');
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  search.addEventListener('input', function(){
+    var q=search.value.trim().toLowerCase(), any=false;
+    document.querySelectorAll('.toc li').forEach(function(li){
+      var link=li.querySelector('.toc-link'), text=link.textContent;
+      var hit=q===''||text.toLowerCase().indexOf(q)!==-1;
+      li.classList.toggle('nomatch',!hit);
+      if(hit&&q!=='') any=true;
+      if(q!==''&&hit){var i=text.toLowerCase().indexOf(q);
+        link.innerHTML=esc(text.slice(0,i))+'<mark class="hit">'+esc(text.slice(i,i+q.length))+'</mark>'+esc(text.slice(i+q.length));}
+      else link.textContent=text;
+    });
+    noResult.style.display=(q!==''&&!any)?'block':'none';
+  });
+  var headings=Array.prototype.slice.call(document.querySelectorAll('.doc h2[id]'));
+  window.addEventListener('scroll', function(){
+    document.getElementById('toTop').style.display=window.pageYOffset>400?'block':'none';
+    if(!headings.length) return;
+    var cur=null,pos=window.pageYOffset+100;
+    headings.forEach(function(h){ if(h.offsetTop<=pos) cur=h.id; });
+    document.querySelectorAll('.toc-link.current').forEach(function(l){l.classList.remove('current');});
+    if(cur){var l=document.querySelector('.toc-link[href="#'+cur+'"]'); if(l) l.classList.add('current');}
+  },{passive:true});
+  document.getElementById('toTop').addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+  document.getElementById('burger').addEventListener('click',function(){body.classList.toggle('nav-open');});
+  document.getElementById('backdrop').addEventListener('click',function(){body.classList.remove('nav-open');});
+})();
+</script>
+</body>
+</html>

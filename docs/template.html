@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{PAGE_TITLE}}</title>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#1f2430;
+  --muted:#6b7280; --line:#e5e7eb; --brand:{{BRAND}}; --brand-soft:{{BRAND_SOFT}};
+  --code-bg:#0f172a; --code-ink:#e2e8f0; --sidebar-w:300px; --header-h:60px;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+  font-size:16px; line-height:1.75; -webkit-font-smoothing:antialiased;}
+header.top{position:fixed; top:0; left:0; right:0; height:var(--header-h); z-index:30;
+  display:flex; align-items:center; gap:16px; padding:0 18px;
+  background:var(--panel); border-bottom:1px solid var(--line);}
+.burger{display:none; border:0; background:transparent; font-size:22px; cursor:pointer; color:var(--ink);}
+.brand{font-weight:800; font-size:16px; white-space:nowrap;}
+.brand a{color:var(--ink); text-decoration:none;}
+nav.tabs{display:flex; gap:4px; overflow-x:auto;}
+nav.tabs a{text-decoration:none; color:var(--muted); font-size:14px; font-weight:600;
+  padding:8px 13px; border-radius:9px; white-space:nowrap;}
+nav.tabs a:hover{background:#f1f5f9; color:var(--ink);}
+nav.tabs a.active{background:var(--brand-soft); color:var(--brand);}
+.search-wrap{margin-left:auto;}
+#search{width:210px; max-width:42vw; padding:8px 12px; border:1px solid var(--line);
+  border-radius:10px; font-size:14px; background:#fafafa;}
+#search:focus{outline:2px solid var(--brand-soft); border-color:var(--brand);}
+.layout{display:flex; padding-top:var(--header-h);}
+aside{position:fixed; top:var(--header-h); bottom:0; left:0; width:var(--sidebar-w);
+  overflow-y:auto; background:var(--panel); border-right:1px solid var(--line); padding:18px 10px 60px;}
+.aside-title{font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase;
+  letter-spacing:.04em; padding:0 12px 8px;}
+main{margin-left:var(--sidebar-w); flex:1; min-width:0; padding:34px clamp(18px,5vw,64px) 120px; max-width:920px;}
+.toc{list-style:none; margin:0; padding:0;}
+.toc li{margin:0;}
+.toc-link{display:block; text-decoration:none; color:var(--muted); font-size:13px;
+  padding:6px 12px 6px 14px; border-left:2px solid transparent; border-radius:0 6px 6px 0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.toc-link:hover{color:var(--brand); background:var(--brand-soft);}
+.toc-link.current{color:var(--brand); border-left-color:var(--brand); background:var(--brand-soft); font-weight:600;}
+.toc li.nomatch{display:none;}
+.doc h1{font-size:30px; line-height:1.3; margin:.1em 0 .6em; padding-bottom:.3em; border-bottom:3px solid var(--brand);}
+.doc h2{font-size:23px; margin:1.9em 0 .6em; border-top:1px solid var(--line); padding-top:1.2em;}
+.doc h3{font-size:18.5px; margin:1.4em 0 .5em; color:#374151;}
+.doc h4{font-size:16px; margin:1.1em 0 .4em; color:#4b5563;}
+.doc p{margin:.7em 0;} .doc a{color:var(--brand);}
+.doc ul,.doc ol{padding-left:1.4em;} .doc li{margin:.25em 0;}
+.doc hr{border:0; border-top:1px solid var(--line); margin:2.2em 0;}
+.doc code{background:#eef1f5; color:#b91c1c; padding:.12em .4em; border-radius:5px; font-size:.9em;
+  font-family:"SFMono-Regular",Consolas,Menlo,monospace;}
+.doc pre{background:var(--code-bg); color:var(--code-ink); padding:16px 18px; border-radius:12px;
+  overflow-x:auto; line-height:1.55; font-size:13.5px;}
+.doc pre code{background:transparent; color:inherit; padding:0;}
+.doc table{border-collapse:collapse; width:100%; margin:1.1em 0; font-size:14.5px; display:block; overflow-x:auto;}
+.doc th,.doc td{border:1px solid var(--line); padding:9px 12px; text-align:left; vertical-align:top;}
+.doc thead th{background:#f3f4f6; font-weight:700;}
+.doc tbody tr:nth-child(even){background:#fafafa;}
+.doc blockquote{margin:1.1em 0; padding:12px 16px; border-left:5px solid var(--muted);
+  background:#f8fafc; border-radius:0 10px 10px 0;}
+.doc blockquote p{margin:.35em 0;}
+.doc blockquote.cmd{border-color:#2563eb; background:#eff6ff;}
+.doc blockquote.ok{border-color:#16a34a; background:#f0fdf4;}
+.doc blockquote.warn{border-color:#d97706; background:#fffbeb;}
+.doc blockquote.tip{border-color:#7c3aed; background:#f5f3ff;}
+.doc blockquote.help{border-color:#dc2626; background:#fef2f2;}
+.doc blockquote.note{border-color:#0891b2; background:#ecfeff;}
+mark.hit{background:#fde68a; padding:0 1px; border-radius:3px;}
+#toTop{position:fixed; right:20px; bottom:20px; z-index:25; display:none; border:0;
+  background:var(--brand); color:#fff; width:46px; height:46px; border-radius:50%;
+  font-size:20px; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.18);}
+.no-result{color:var(--muted); font-size:13px; padding:8px 12px; display:none;}
+#backdrop{display:none;}
+@media (max-width:880px){
+  :root{--sidebar-w:280px;}
+  .burger{display:block;} .brand{font-size:14px;}
+  aside{transform:translateX(-100%); transition:transform .25s ease; z-index:40; box-shadow:0 0 30px rgba(0,0,0,.15);}
+  body.nav-open aside{transform:translateX(0);}
+  main{margin-left:0; padding:24px 18px 100px;}
+  body.nav-open #backdrop{display:block; position:fixed; inset:var(--header-h) 0 0 0; background:rgba(0,0,0,.35); z-index:35;}
+  #search{width:130px;}
+}
+@media print{header.top,aside,#toTop{display:none!important;} main{margin:0; max-width:none;}}
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="burger" id="burger" aria-label="메뉴">☰</button>
+  <div class="brand"><a href="index.html">🦅 오픈클로 매뉴얼</a></div>
+  <nav class="tabs">{{NAV}}</nav>
+  <div class="search-wrap"><input id="search" type="search" placeholder="🔍 목차 검색…" autocomplete="off"></div>
+</header>
+<div class="layout">
+  <aside id="sidebar">
+    <div class="aside-title">목차</div>
+    <div id="noResult" class="no-result">검색 결과가 없습니다.</div>
+    <ul class="toc">{{SIDEBAR_TOC}}</ul>
+  </aside>
+  <div id="backdrop"></div>
+  <main><section class="doc">{{BODY}}</section></main>
+</div>
+<button id="toTop" title="맨 위로">↑</button>
+<script>
+(function(){
+  "use strict";
+  var body=document.body;
+  document.querySelectorAll('.doc blockquote').forEach(function(bq){
+    var t=(bq.textContent||'').trim();
+    if(t.indexOf('📋')===0) bq.classList.add('cmd');
+    else if(t.indexOf('✅')===0) bq.classList.add('ok');
+    else if(t.indexOf('⚠️')===0||t.indexOf('🚨')===0) bq.classList.add('warn');
+    else if(t.indexOf('💡')===0||t.indexOf('📌')===0) bq.classList.add('tip');
+    else if(t.indexOf('🛟')===0||t.indexOf('🆘')===0) bq.classList.add('help');
+    else if(t.indexOf('📚')===0||t.indexOf('🧪')===0||t.indexOf('🖱️')===0) bq.classList.add('note');
+  });
+  document.querySelectorAll('.toc-link').forEach(function(link){
+    link.addEventListener('click', function(e){
+      e.preventDefault();
+      var target=document.getElementById(link.getAttribute('href').slice(1));
+      if(target){ var y=target.getBoundingClientRect().top+window.pageYOffset-78; window.scrollTo({top:y,behavior:'smooth'}); }
+      body.classList.remove('nav-open');
+    });
+  });
+  var search=document.getElementById('search'), noResult=document.getElementById('noResult');
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  search.addEventListener('input', function(){
+    var q=search.value.trim().toLowerCase(), any=false;
+    document.querySelectorAll('.toc li').forEach(function(li){
+      var link=li.querySelector('.toc-link'), text=link.textContent;
+      var hit=q===''||text.toLowerCase().indexOf(q)!==-1;
+      li.classList.toggle('nomatch',!hit);
+      if(hit&&q!=='') any=true;
+      if(q!==''&&hit){var i=text.toLowerCase().indexOf(q);
+        link.innerHTML=esc(text.slice(0,i))+'<mark class="hit">'+esc(text.slice(i,i+q.length))+'</mark>'+esc(text.slice(i+q.length));}
+      else link.textContent=text;
+    });
+    noResult.style.display=(q!==''&&!any)?'block':'none';
+  });
+  var headings=Array.prototype.slice.call(document.querySelectorAll('.doc h2[id]'));
+  window.addEventListener('scroll', function(){
+    document.getElementById('toTop').style.display=window.pageYOffset>400?'block':'none';
+    if(!headings.length) return;
+    var cur=null,pos=window.pageYOffset+100;
+    headings.forEach(function(h){ if(h.offsetTop<=pos) cur=h.id; });
+    document.querySelectorAll('.toc-link.current').forEach(function(l){l.classList.remove('current');});
+    if(cur){var l=document.querySelector('.toc-link[href="#'+cur+'"]'); if(l) l.classList.add('current');}
+  },{passive:true});
+  document.getElementById('toTop').addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+  document.getElementById('burger').addEventListener('click',function(){body.classList.toggle('nav-open');});
+  document.getElementById('backdrop').addEventListener('click',function(){body.classList.remove('nav-open');});
+})();
+</script>
+</body>
+</html>

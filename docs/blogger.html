@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>구글 블로거 편 · 오픈클로 블로그 자동화 매뉴얼</title>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#1f2430;
+  --muted:#6b7280; --line:#e5e7eb; --brand:#ea580c; --brand-soft:#fff3ed;
+  --code-bg:#0f172a; --code-ink:#e2e8f0; --sidebar-w:300px; --header-h:60px;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+  font-size:16px; line-height:1.75; -webkit-font-smoothing:antialiased;}
+header.top{position:fixed; top:0; left:0; right:0; height:var(--header-h); z-index:30;
+  display:flex; align-items:center; gap:16px; padding:0 18px;
+  background:var(--panel); border-bottom:1px solid var(--line);}
+.burger{display:none; border:0; background:transparent; font-size:22px; cursor:pointer; color:var(--ink);}
+.brand{font-weight:800; font-size:16px; white-space:nowrap;}
+.brand a{color:var(--ink); text-decoration:none;}
+nav.tabs{display:flex; gap:4px; overflow-x:auto;}
+nav.tabs a{text-decoration:none; color:var(--muted); font-size:14px; font-weight:600;
+  padding:8px 13px; border-radius:9px; white-space:nowrap;}
+nav.tabs a:hover{background:#f1f5f9; color:var(--ink);}
+nav.tabs a.active{background:var(--brand-soft); color:var(--brand);}
+.search-wrap{margin-left:auto;}
+#search{width:210px; max-width:42vw; padding:8px 12px; border:1px solid var(--line);
+  border-radius:10px; font-size:14px; background:#fafafa;}
+#search:focus{outline:2px solid var(--brand-soft); border-color:var(--brand);}
+.layout{display:flex; padding-top:var(--header-h);}
+aside{position:fixed; top:var(--header-h); bottom:0; left:0; width:var(--sidebar-w);
+  overflow-y:auto; background:var(--panel); border-right:1px solid var(--line); padding:18px 10px 60px;}
+.aside-title{font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase;
+  letter-spacing:.04em; padding:0 12px 8px;}
+main{margin-left:var(--sidebar-w); flex:1; min-width:0; padding:34px clamp(18px,5vw,64px) 120px; max-width:920px;}
+.toc{list-style:none; margin:0; padding:0;}
+.toc li{margin:0;}
+.toc-link{display:block; text-decoration:none; color:var(--muted); font-size:13px;
+  padding:6px 12px 6px 14px; border-left:2px solid transparent; border-radius:0 6px 6px 0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.toc-link:hover{color:var(--brand); background:var(--brand-soft);}
+.toc-link.current{color:var(--brand); border-left-color:var(--brand); background:var(--brand-soft); font-weight:600;}
+.toc li.nomatch{display:none;}
+.doc h1{font-size:30px; line-height:1.3; margin:.1em 0 .6em; padding-bottom:.3em; border-bottom:3px solid var(--brand);}
+.doc h2{font-size:23px; margin:1.9em 0 .6em; border-top:1px solid var(--line); padding-top:1.2em;}
+.doc h3{font-size:18.5px; margin:1.4em 0 .5em; color:#374151;}
+.doc h4{font-size:16px; margin:1.1em 0 .4em; color:#4b5563;}
+.doc p{margin:.7em 0;} .doc a{color:var(--brand);}
+.doc ul,.doc ol{padding-left:1.4em;} .doc li{margin:.25em 0;}
+.doc hr{border:0; border-top:1px solid var(--line); margin:2.2em 0;}
+.doc code{background:#eef1f5; color:#b91c1c; padding:.12em .4em; border-radius:5px; font-size:.9em;
+  font-family:"SFMono-Regular",Consolas,Menlo,monospace;}
+.doc pre{background:var(--code-bg); color:var(--code-ink); padding:16px 18px; border-radius:12px;
+  overflow-x:auto; line-height:1.55; font-size:13.5px;}
+.doc pre code{background:transparent; color:inherit; padding:0;}
+.doc table{border-collapse:collapse; width:100%; margin:1.1em 0; font-size:14.5px; display:block; overflow-x:auto;}
+.doc th,.doc td{border:1px solid var(--line); padding:9px 12px; text-align:left; vertical-align:top;}
+.doc thead th{background:#f3f4f6; font-weight:700;}
+.doc tbody tr:nth-child(even){background:#fafafa;}
+.doc blockquote{margin:1.1em 0; padding:12px 16px; border-left:5px solid var(--muted);
+  background:#f8fafc; border-radius:0 10px 10px 0;}
+.doc blockquote p{margin:.35em 0;}
+.doc blockquote.cmd{border-color:#2563eb; background:#eff6ff;}
+.doc blockquote.ok{border-color:#16a34a; background:#f0fdf4;}
+.doc blockquote.warn{border-color:#d97706; background:#fffbeb;}
+.doc blockquote.tip{border-color:#7c3aed; background:#f5f3ff;}
+.doc blockquote.help{border-color:#dc2626; background:#fef2f2;}
+.doc blockquote.note{border-color:#0891b2; background:#ecfeff;}
+mark.hit{background:#fde68a; padding:0 1px; border-radius:3px;}
+#toTop{position:fixed; right:20px; bottom:20px; z-index:25; display:none; border:0;
+  background:var(--brand); color:#fff; width:46px; height:46px; border-radius:50%;
+  font-size:20px; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.18);}
+.no-result{color:var(--muted); font-size:13px; padding:8px 12px; display:none;}
+#backdrop{display:none;}
+@media (max-width:880px){
+  :root{--sidebar-w:280px;}
+  .burger{display:block;} .brand{font-size:14px;}
+  aside{transform:translateX(-100%); transition:transform .25s ease; z-index:40; box-shadow:0 0 30px rgba(0,0,0,.15);}
+  body.nav-open aside{transform:translateX(0);}
+  main{margin-left:0; padding:24px 18px 100px;}
+  body.nav-open #backdrop{display:block; position:fixed; inset:var(--header-h) 0 0 0; background:rgba(0,0,0,.35); z-index:35;}
+  #search{width:130px;}
+}
+@media print{header.top,aside,#toTop{display:none!important;} main{margin:0; max-width:none;}}
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="burger" id="burger" aria-label="메뉴">☰</button>
+  <div class="brand"><a href="index.html">🦅 오픈클로 매뉴얼</a></div>
+  <nav class="tabs"><a href="index.html">홈</a><a href="tistory.html">🟦 티스토리</a><a href="naver.html">🟩 네이버</a><a href="blogger.html" class="active">🟠 구글 블로거</a><a href="manual.html">📖 기술 배경</a></nav>
+  <div class="search-wrap"><input id="search" type="search" placeholder="🔍 목차 검색…" autocomplete="off"></div>
+</header>
+<div class="layout">
+  <aside id="sidebar">
+    <div class="aside-title">목차</div>
+    <div id="noResult" class="no-result">검색 결과가 없습니다.</div>
+    <ul class="toc"><li><a class="toc-link" href="#star2-구글-블로거가-특별한-이유-꼭-읽으세요">🌟 구글 블로거가
+특별한 이유 (꼭 읽으세요)</a></li><li><a class="toc-link" href="#compass-이-워크북을-쓰는-법">🧭 이 워크북을 쓰는 법</a></li><li><a class="toc-link" href="#package-준비물-체크리스트">📦 준비물 체크리스트</a></li><li><a class="toc-link" href="#clapper-0차시--큰-그림-이해하기-10분">🎬 0차시 — 큰 그림
+이해하기 (10분)</a></li><li><a class="toc-link" href="#hammer_and_wrench-1차시--작업-공간-만들기">🛠️ 1차시 — 작업 공간
+만들기</a></li><li><a class="toc-link" href="#key-2차시--구글-출입증api-인증-발급받기-star가장-중요star">🔑
+2차시 — 구글 &quot;출입증(API 인증)&quot; 발급받기 ⭐가장 중요⭐</a></li><li><a class="toc-link" href="#unlock-3차시--첫-로그인인증-한-번-하기">🔓 3차시 — 첫
+로그인(인증) 한 번 하기</a></li><li><a class="toc-link" href="#id-4차시--내-블로그-번호id-찾기">🆔 4차시 — 내 블로그 번호(ID)
+찾기</a></li><li><a class="toc-link" href="#writing_hand-5차시--올릴-글-준비하기">✍️ 5차시 — 올릴 글
+준비하기</a></li><li><a class="toc-link" href="#rocket-6차시--글쓰기--발행-자동화-완성">🚀 6차시 — 글쓰기 + 발행
+자동화 (완성!)</a></li><li><a class="toc-link" href="#alarm_clock-7차시--매일-자동으로-돌리기-선택-심화">⏰ 7차시 —
+매일 자동으로 돌리기 (선택 심화)</a></li><li><a class="toc-link" href="#vs-부록-a--블로거-vs-티스토리네이버-한눈-비교">🆚 부록 A —
+블로거 vs 티스토리·네이버 한눈 비교</a></li><li><a class="toc-link" href="#sos-부록-b--막혔을-때-만능-주문-모음">🆘 부록 B — 막혔을 때 만능
+주문 모음</a></li><li><a class="toc-link" href="#receipt-부록-c--용어-사전-1줄-설명">🧾 부록 C — 용어 사전 (1줄
+설명)</a></li><li><a class="toc-link" href="#balance_scale-부록-d--꼭-지킬-규칙-윤리--안전">⚖️ 부록 D — 꼭
+지킬 규칙 (윤리 &amp;amp; 안전)</a></li><li><a class="toc-link" href="#checkered_flag-수료-체크리스트">🏁 수료 체크리스트</a></li></ul>
+  </aside>
+  <div id="backdrop"></div>
+  <main><section class="doc"><h1
+id="orange_circle-오픈클로openclaw로-구글-블로거blogger-자동화--실습-워크북">🟠
+오픈클로(openclaw)로 구글 블로거(Blogger) 자동화 — 실습 워크북</h1>
+<blockquote>
+<p><strong>대상:</strong> 코딩을 한 번도 해본 적 없는 완전 초보 교육생
+<strong>목표:</strong> 코드를 직접 짜지 않고, <strong>오픈클로에게
+한국어로 시켜서</strong> 구글 블로거 글쓰기를 자동화한다
+<strong>방식:</strong> 회색 박스의 명령을 <strong>그대로 복사 →
+오픈클로에 붙여넣기</strong>하며 따라오면 됩니다</p>
+</blockquote>
+<blockquote>
+<p>💡 먼저
+<code>교육-실습워크북-블로그자동화.md</code>(티스토리/네이버)를 끝낸
+교육생이라면 더 쉽습니다. 처음이어도 OK!</p>
+</blockquote>
+<hr />
+<h2 id="star2-구글-블로거가-특별한-이유-꼭-읽으세요">🌟 구글 블로거가
+특별한 이유 (꼭 읽으세요)</h2>
+<p>티스토리·네이버와 <strong>결정적으로 다릅니다.</strong></p>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>티스토리·네이버</th>
+<th>구글 블로거</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>공식 자동화 통로(API)</td>
+<td>❌ 거의 막힘</td>
+<td>✅ <strong>열려 있음 (Blogger API)</strong></td>
+</tr>
+<tr>
+<td>캡차(보안문자) 골치</td>
+<td>😫 자주 막힘</td>
+<td>😄 <strong>거의 없음</strong></td>
+</tr>
+<tr>
+<td>자동화 안정성</td>
+<td>화면 바뀌면 깨짐</td>
+<td><strong>튼튼함</strong></td>
+</tr>
+<tr>
+<td>초기 설정 난이도</td>
+<td>쉬움</td>
+<td>⚠️ <strong>구글 인증 설정이 조금 번거로움</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>한 줄 요약: <strong>블로거는 "정식 출입증(API)"을 발급받는
+방식</strong>이라 일단 설정만 끝나면 캡차 없이 아주 안정적입니다. 대신
+<strong>처음에 출입증 발급(구글 인증) 과정</strong>이 이 워크북의 핵심
+관문입니다. 오픈클로가 손잡고 안내해 줍니다.</p>
+</blockquote>
+<hr />
+<h2 id="compass-이-워크북을-쓰는-법">🧭 이 워크북을 쓰는 법</h2>
+<p>각 단계는 이렇게 되어 있어요:</p>
+<blockquote>
+<p>📋 <strong>입력할 명령</strong> — 오픈클로에 그대로 붙여넣을 한국어
+문장 ✅ <strong>이렇게 되면 성공</strong> — 무엇이 보이면 잘된 건지 🛟
+<strong>막히면</strong> — 안 될 때 뭐라고 말하면 되는지</p>
+</blockquote>
+<blockquote>
+<p>💡 <strong>마음가짐:</strong> 안 되면 오픈클로에게 <strong>"안 돼,
+쉬운 말로 설명하고 네가 고쳐줘"</strong> 라고 하면 됩니다. 코드를 몰라도
+됩니다.</p>
+</blockquote>
+<hr />
+<h2 id="package-준비물-체크리스트">📦 준비물 체크리스트</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />컴퓨터에
+<strong>오픈클로(openclaw)</strong> 가 실행됨</label></li>
+<li><label><input type="checkbox" /><strong>구글 계정</strong> (Gmail
+계정)</label></li>
+<li><label><input type="checkbox" /><strong>블로거 블로그 1개</strong>
+(없으면 <a href="https://www.blogger.com">blogger.com</a> 에서 무료로
+1분 만에 생성)</label></li>
+<li><label><input type="checkbox" />연습용 글 1~2개 (아무 내용
+OK)</label></li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>연습은 반드시 "초안(비공개)"으로 시작합니다.</strong></p>
+</blockquote>
+<hr />
+<h2 id="clapper-0차시--큰-그림-이해하기-10분">🎬 0차시 — 큰 그림
+이해하기 (10분)</h2>
+<p>블로거 자동화는 이런 순서예요:</p>
+<pre><code>[1] 구글에서 &quot;출입증(API 사용 허가)&quot;을 발급받는다   ← 처음 한 번만, 조금 번거로움
+        │
+[2] 오픈클로가 그 출입증으로 블로거에 글을 올리는 프로그램을 만든다
+        │
+[3] 글 파일만 바꾸면 계속 자동 발행!   ← 캡차 없음, 안정적</code></pre>
+<blockquote>
+<p>📋 <strong>첫 명령 — 개념 확인</strong></p>
+<pre><code>나는 코딩을 전혀 몰라. 구글 블로거(Blogger)에 글을 자동으로 올리는 걸
+너에게 시켜서 만들고 싶어. 블로거는 공식 API가 있다고 들었어.
+전체 흐름을 코딩 모르는 사람도 알게 4줄로 쉽게 설명해줘.</code></pre>
+<p>✅ <strong>성공:</strong> "구글에서 인증 받고 → API로 글 올린다" 같은
+쉬운 설명이 나옴.</p>
+</blockquote>
+<hr />
+<h2 id="hammer_and_wrench-1차시--작업-공간-만들기">🛠️ 1차시 — 작업 공간
+만들기</h2>
+<blockquote>
+<p>📋 <strong>명령 — 프로젝트 폴더 + 도구 준비</strong></p>
+<pre><code>구글 블로거 자동 포스팅 연습용 작업 폴더를 만들어줘.
+블로거 공식 API(Blogger API v3)를 쓸 거야. 필요한 프로그램
+(파이썬, 구글 API 라이브러리 등)을 네가 알아서 설치하고,
+다 되면 &quot;준비 끝&quot;이라고 알려줘. 내가 할 일이 있으면 쉽게 알려줘.</code></pre>
+<p>✅ <strong>성공:</strong> 설치가 끝나고 "준비 끝" 안내. 🛟
+<strong>막히면:</strong>
+<code>방금 나온 에러를 쉬운 말로 설명하고 네가 고쳐줘.</code></p>
+</blockquote>
+<hr />
+<h2 id="key-2차시--구글-출입증api-인증-발급받기-star가장-중요star">🔑
+2차시 — 구글 "출입증(API 인증)" 발급받기 ⭐가장 중요⭐</h2>
+<p>이 차시가 블로거 자동화의 <strong>핵심 관문</strong>입니다. 천천히
+따라오세요. 구글 클라우드 화면에서 클릭하는 작업이라,
+<strong>오픈클로에게 길안내를 받으며</strong> 진행합니다.</p>
+<blockquote>
+<p>📋 <strong>명령 1 — 구글 클라우드 설정 길안내 받기</strong></p>
+<pre><code>블로거 API를 쓰려면 구글 클라우드(Google Cloud Console)에서 설정이 필요하다고 들었어.
+나는 처음이라 화면이 낯설어. 아래를 코딩 모르는 사람도 따라 하게
+&quot;클릭 순서&quot;로 아주 자세히, 한 단계씩 알려줘:
+1) 새 프로젝트 만들기
+2) Blogger API 사용 설정(활성화)
+3) OAuth 동의 화면 만들기
+4) &quot;데스크톱 앱&quot;용 OAuth 클라이언트 ID 만들고, 인증 파일(JSON) 내려받기
+각 단계마다 어떤 버튼을 누르는지 알려주고, 내가 &quot;다음&quot;이라고 하면 이어서 설명해줘.</code></pre>
+<p>✅ <strong>성공:</strong> 오픈클로가 1번부터 차근차근 클릭 순서를
+알려줌. 한 단계씩 따라하면 됨.</p>
+</blockquote>
+<blockquote>
+<p>🖱️ <strong>여러분이 직접 하는 일 (브라우저에서):</strong></p>
+<ol type="1">
+<li><a
+href="https://console.cloud.google.com">console.cloud.google.com</a>
+접속 → 새 프로젝트 생성</li>
+<li>"API 및 서비스 → 라이브러리"에서 <strong>Blogger API v3</strong>
+검색 → <strong>사용 설정</strong></li>
+<li>"OAuth 동의 화면" 구성 (외부/본인 이메일 테스트 사용자로 추가)</li>
+<li>"사용자 인증 정보 → 사용자 인증 정보 만들기 → <strong>OAuth
+클라이언트 ID → 데스크톱 앱</strong>"</li>
+<li>만들어진 인증 파일(<strong>JSON</strong>)을
+<strong>다운로드</strong></li>
+</ol>
+</blockquote>
+<blockquote>
+<p>📋 <strong>명령 2 — 내려받은 인증 파일 연결하기</strong></p>
+<pre><code>방금 구글에서 받은 인증 파일(JSON)을 내려받았어. 이 파일을 우리 작업 폴더의
+어디에 어떤 이름으로 두면 되는지 알려줘. 그리고 이 파일은 비밀번호처럼 중요하니까
+실수로 외부에 공유되지 않게 막아줘(.gitignore 처리).</code></pre>
+<p>✅ <strong>성공:</strong> "이 위치에 <code>client_secret.json</code>
+으로 두세요" 같은 안내 + 보안 처리 완료. ⚠️ <strong>이 JSON 파일은
+비밀번호급입니다. 절대 남에게 공유 금지!</strong></p>
+</blockquote>
+<blockquote>
+<p>🛟 <strong>막히면 (흔한 경우):</strong></p>
+<ul>
+<li>화면 메뉴를 못 찾겠다 →
+<code>구글 클라우드 화면 메뉴 이름이 달라 보여. 지금 단계에서 정확히 어디를 눌러야 하는지 다시 알려줘.</code></li>
+<li>"앱이 확인되지 않음" 경고 →
+<code>구글이 "확인되지 않은 앱"이라고 경고해. 테스트 단계에서는 어떻게 넘어가면 되는지 알려줘.</code>
+(보통 "고급 → 계속" 으로 진행)</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="unlock-3차시--첫-로그인인증-한-번-하기">🔓 3차시 — 첫
+로그인(인증) 한 번 하기</h2>
+<p>발급받은 출입증으로 <strong>딱 한 번</strong> 구글 로그인 승인을
+해주면, 그 다음부터는 자동입니다.</p>
+<blockquote>
+<p>📋 <strong>명령 — 인증 실행</strong></p>
+<pre><code>이제 발급받은 인증 파일로 구글 로그인 승인을 한 번 진행하는 기능을 만들고 실행해줘.
+브라우저가 열리면 내가 직접 구글 계정으로 &quot;허용&quot;을 누를게.
+승인이 끝나면 다음부터는 자동 로그인되게 그 인증 결과(토큰)를 저장해줘.</code></pre>
+<p>✅ <strong>성공:</strong> 브라우저가 열리고 → 여러분이 구글 계정 선택
+→ "허용" 클릭 → "인증 완료" 메시지 + 토큰 저장. 🛟
+<strong>막히면:</strong>
+<code>인증 창에서 에러가 났어. 무슨 뜻인지 쉽게 알려주고 고쳐줘.</code></p>
+</blockquote>
+<blockquote>
+<p>📌 <strong>포인트:</strong> 이 토큰 덕분에 <strong>다음부터는 캡차도,
+로그인도 신경 쓸 필요가 없습니다.</strong> 블로거가 편한 이유!</p>
+</blockquote>
+<hr />
+<h2 id="id-4차시--내-블로그-번호id-찾기">🆔 4차시 — 내 블로그 번호(ID)
+찾기</h2>
+<p>블로거는 글을 올릴 때 "어느 블로그인지" 번호가 필요합니다. 오픈클로가
+찾아줍니다.</p>
+<blockquote>
+<p>📋 <strong>명령 — 블로그 ID 자동 조회</strong></p>
+<pre><code>내 구글 계정에 연결된 블로거 블로그 목록과 각 블로그의 ID(번호)를 조회해서
+보기 좋게 보여줘. 앞으로 글을 올릴 블로그를 내가 고를 수 있게 해줘.</code></pre>
+<p>✅ <strong>성공:</strong> "블로그 이름 / 주소 / ID" 목록이 표로 나옴.
+거기서 쓸 블로그를 고르면 됨.</p>
+</blockquote>
+<hr />
+<h2 id="writing_hand-5차시--올릴-글-준비하기">✍️ 5차시 — 올릴 글
+준비하기</h2>
+<blockquote>
+<p>📋 <strong>명령 — 글 보관함 만들기</strong></p>
+<pre><code>블로거에 올릴 글을 보관할 폴더를 만들어줘. 메모장처럼 첫 줄에 제목,
+그 아래에 본문을 쓰면 그대로 올라가게 규칙을 정하고, 예시 글 1개도 만들어줘.</code></pre>
+<p>✅ <strong>성공:</strong> 글 폴더와 예시 글 생성, "첫 줄=제목" 규칙
+안내.</p>
+</blockquote>
+<blockquote>
+<p>🧪 <strong>직접 해보기:</strong> 예시 글의 제목과 내용을 마음대로
+바꿔보세요. 그냥 글쓰기예요!</p>
+</blockquote>
+<hr />
+<h2 id="rocket-6차시--글쓰기--발행-자동화-완성">🚀 6차시 — 글쓰기 + 발행
+자동화 (완성!)</h2>
+<blockquote>
+<p>📋 <strong>명령 — 글 올리기 자동화</strong></p>
+<pre><code>아까 고른 블로그에, 글 보관함의 글을 하나 가져와서 블로거에 자동으로 올려줘.
+단, 처음에는 꼭 &quot;초안(비공개)&quot;으로 올려서 연습부터 하자. 실행해서 결과를 보여줘.</code></pre>
+<p>✅ <strong>성공:</strong> "글이 초안으로 등록됐습니다" + 블로거
+관리화면에 <strong>초안 글</strong>이 생김. 🛟 <strong>막히면:</strong>
+<code>글 올리기에서 에러가 났어. 권한 문제인지 확인하고 쉬운 말로 알려준 뒤 고쳐줘.</code></p>
+</blockquote>
+<blockquote>
+<p>🎉 <strong>여기까지 오면 블로거 자동화 완성!</strong> 글 파일만
+바꾸면 계속 올릴 수 있어요.</p>
+</blockquote>
+<blockquote>
+<p>📋 <strong>(응용) 초안 확인 후 진짜 발행</strong></p>
+<pre><code>초안이 잘 만들어진 걸 확인했어. 이제 실제로 공개 발행하는 것도 가능하게 해줘.
+그리고 글 여러 개를 올릴 때는 사이에 시간 간격을 두고 하루 개수도 제한해줘.</code></pre>
+</blockquote>
+<hr />
+<h2 id="alarm_clock-7차시--매일-자동으로-돌리기-선택-심화">⏰ 7차시 —
+매일 자동으로 돌리기 (선택 심화)</h2>
+<blockquote>
+<p>📋 <strong>명령 — 정기 실행 예약</strong></p>
+<pre><code>이 블로거 자동 발행을 매일 아침 9시에 저절로 실행되게 예약하고 싶어.
+내 컴퓨터(맥/윈도우)에 맞는 방법으로 해주고, 성공/실패 기록(로그)도 남겨줘.</code></pre>
+<p>✅ <strong>성공:</strong> "매일 9시 자동 실행 예약 완료" + 기록 파일
+생성.</p>
+</blockquote>
+<hr />
+<h2 id="vs-부록-a--블로거-vs-티스토리네이버-한눈-비교">🆚 부록 A —
+블로거 vs 티스토리·네이버 한눈 비교</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>구글 블로거</th>
+<th>티스토리</th>
+<th>네이버</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>자동화 방식</td>
+<td><strong>공식 API</strong></td>
+<td>브라우저 흉내(셀레니움)</td>
+<td>브라우저 흉내(셀레니움)</td>
+</tr>
+<tr>
+<td>캡차</td>
+<td>거의 없음 😄</td>
+<td>자주 😫</td>
+<td>매우 자주 😱</td>
+</tr>
+<tr>
+<td>초기 설정</td>
+<td>구글 인증(번거로움)</td>
+<td>쉬움</td>
+<td>어려움</td>
+</tr>
+<tr>
+<td>안정성</td>
+<td>★★★</td>
+<td>★★</td>
+<td>★</td>
+</tr>
+<tr>
+<td>추천 대상</td>
+<td><strong>안정적 장기 운영</strong></td>
+<td>국내 블로그 입문</td>
+<td>고급자</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 <strong>결론:</strong> 처음 인증만 통과하면 <strong>블로거가 가장
+편하고 안정적</strong>입니다.</p>
+</blockquote>
+<hr />
+<h2 id="sos-부록-b--막혔을-때-만능-주문-모음">🆘 부록 B — 막혔을 때 만능
+주문 모음</h2>
+<table>
+<thead>
+<tr>
+<th>상황</th>
+<th>오픈클로에게 이렇게 말하세요</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>빨간 에러가 떴다</td>
+<td><code>방금 나온 에러를 쉬운 말로 설명하고, 네가 직접 고쳐줘.</code></td>
+</tr>
+<tr>
+<td>구글 클라우드 메뉴를 못 찾겠다</td>
+<td><code>지금 단계에서 어떤 메뉴/버튼을 눌러야 하는지 다시 자세히 알려줘.</code></td>
+</tr>
+<tr>
+<td>"확인되지 않은 앱" 경고</td>
+<td><code>테스트 단계에서 이 경고를 안전하게 넘기는 방법을 알려줘.</code></td>
+</tr>
+<tr>
+<td>"권한이 없다(403)"</td>
+<td><code>권한 에러가 났어. OAuth 범위(scope)나 테스트 사용자 설정을 점검해줘.</code></td>
+</tr>
+<tr>
+<td>인증이 자꾸 풀린다</td>
+<td><code>토큰이 자꾸 만료돼. 토큰을 자동 갱신하도록 고쳐줘.</code></td>
+</tr>
+<tr>
+<td>블로그 ID를 모르겠다</td>
+<td><code>내 블로그 목록과 ID를 다시 조회해서 보여줘.</code></td>
+</tr>
+<tr>
+<td>뭐가 뭔지 모르겠다</td>
+<td><code>지금 상황을 코딩 모르는 사람도 알게 1~2줄로 정리해줘.</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="receipt-부록-c--용어-사전-1줄-설명">🧾 부록 C — 용어 사전 (1줄
+설명)</h2>
+<table>
+<thead>
+<tr>
+<th>용어</th>
+<th>쉬운 뜻</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>오픈클로</td>
+<td>한국어로 시키면 코딩을 대신 해주는 AI 비서</td>
+</tr>
+<tr>
+<td>API</td>
+<td>프로그램끼리 통하는 <strong>공식 출입문</strong> (블로거는 이게 열려
+있음)</td>
+</tr>
+<tr>
+<td>Blogger API v3</td>
+<td>구글이 제공하는 블로거 자동화용 공식 출입문 (최신 버전)</td>
+</tr>
+<tr>
+<td>Google Cloud Console</td>
+<td>구글의 개발 설정 사이트 (여기서 출입증을 발급)</td>
+</tr>
+<tr>
+<td>OAuth</td>
+<td>"이 프로그램이 내 블로그에 글 올려도 돼요" 라고 <strong>허락하는
+절차</strong></td>
+</tr>
+<tr>
+<td>클라이언트 ID / JSON</td>
+<td>출입증 본체 (비밀번호처럼 중요)</td>
+</tr>
+<tr>
+<td>토큰(Token)</td>
+<td>한 번 허락받은 뒤 자동 로그인에 쓰는 <strong>임시
+통행증</strong></td>
+</tr>
+<tr>
+<td>초안(Draft)</td>
+<td>아직 공개 안 한 비공개 글 (연습용으로 안성맞춤)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="balance_scale-부록-d--꼭-지킬-규칙-윤리--안전">⚖️ 부록 D — 꼭
+지킬 규칙 (윤리 &amp; 안전)</h2>
+<ol type="1">
+<li><strong>연습은 초안(비공개)으로.</strong> 공개는 확인 후
+마지막에.</li>
+<li><strong>인증 파일(JSON)·토큰은 비밀번호급.</strong> 절대 공유·업로드
+금지.</li>
+<li><strong>본인 블로그만, 적당량만.</strong> 스팸성 대량 발행
+금지.</li>
+<li><strong>남의 글 복제 금지.</strong> 저작권 문제가 생깁니다.</li>
+<li>자동화는 도구일 뿐, 운영 책임은 본인에게 있습니다.</li>
+</ol>
+<hr />
+<h2 id="checkered_flag-수료-체크리스트">🏁 수료 체크리스트</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />블로거가 왜 캡차 걱정이 적은지(공식
+API) 설명할 수 있다</label></li>
+<li><label><input type="checkbox" />오픈클로 안내를 받아 구글
+인증(OAuth)을 끝까지 발급받았다</label></li>
+<li><label><input type="checkbox" />내 블로그 ID를 조회할 수
+있다</label></li>
+<li><label><input type="checkbox" />블로거에 초안 글을 자동으로
+올려봤다</label></li>
+<li><label><input type="checkbox" />인증 파일·토큰을 안전하게 관리하는
+법을 안다</label></li>
+</ul>
+<hr />
+<blockquote>
+<p>📚 <strong>강사 참고:</strong></p>
+<ul>
+<li>블로거는 <strong>셀레니움이 아니라 공식 API + OAuth</strong> 방식이
+정답입니다(티스토리/네이버와 다른 핵심 포인트).</li>
+<li>교육생이 가장 많이 막히는 곳은 <strong>2차시(구글 클라우드 OAuth
+설정)</strong> 입니다. 이 부분은 강사가 화면 시연으로 함께 진행하는 것을
+권장합니다.</li>
+<li>같은 시리즈:
+<code>교육-실습워크북-블로그자동화.md</code>(티스토리/네이버), 기술
+배경은 <code>블로그-포스팅-자동화-매뉴얼.md</code>.</li>
+</ul>
+</blockquote>
+<hr />
+<h3 id="참고-자료-웹-검색-출처">참고 자료 (웹 검색 출처)</h3>
+<ul>
+<li><a
+href="https://rollout.com/integration-guides/blogger/api-essentials">Blogger
+API Essential Guide — Rollout</a></li>
+<li><a
+href="https://developers.google.com/blogger/docs/1.0/developers_guide_python?hl=ko">Blogger
+개발자 가이드 (Python) — Google 공식</a></li>
+<li><a href="https://ux.stories.pe.kr/281">Google Blogger API 생성하는
+방법 — UX 공작소</a></li>
+</ul>
+</section></main>
+</div>
+<button id="toTop" title="맨 위로">↑</button>
+<script>
+(function(){
+  "use strict";
+  var body=document.body;
+  document.querySelectorAll('.doc blockquote').forEach(function(bq){
+    var t=(bq.textContent||'').trim();
+    if(t.indexOf('📋')===0) bq.classList.add('cmd');
+    else if(t.indexOf('✅')===0) bq.classList.add('ok');
+    else if(t.indexOf('⚠️')===0||t.indexOf('🚨')===0) bq.classList.add('warn');
+    else if(t.indexOf('💡')===0||t.indexOf('📌')===0) bq.classList.add('tip');
+    else if(t.indexOf('🛟')===0||t.indexOf('🆘')===0) bq.classList.add('help');
+    else if(t.indexOf('📚')===0||t.indexOf('🧪')===0||t.indexOf('🖱️')===0) bq.classList.add('note');
+  });
+  document.querySelectorAll('.toc-link').forEach(function(link){
+    link.addEventListener('click', function(e){
+      e.preventDefault();
+      var target=document.getElementById(link.getAttribute('href').slice(1));
+      if(target){ var y=target.getBoundingClientRect().top+window.pageYOffset-78; window.scrollTo({top:y,behavior:'smooth'}); }
+      body.classList.remove('nav-open');
+    });
+  });
+  var search=document.getElementById('search'), noResult=document.getElementById('noResult');
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  search.addEventListener('input', function(){
+    var q=search.value.trim().toLowerCase(), any=false;
+    document.querySelectorAll('.toc li').forEach(function(li){
+      var link=li.querySelector('.toc-link'), text=link.textContent;
+      var hit=q===''||text.toLowerCase().indexOf(q)!==-1;
+      li.classList.toggle('nomatch',!hit);
+      if(hit&&q!=='') any=true;
+      if(q!==''&&hit){var i=text.toLowerCase().indexOf(q);
+        link.innerHTML=esc(text.slice(0,i))+'<mark class="hit">'+esc(text.slice(i,i+q.length))+'</mark>'+esc(text.slice(i+q.length));}
+      else link.textContent=text;
+    });
+    noResult.style.display=(q!==''&&!any)?'block':'none';
+  });
+  var headings=Array.prototype.slice.call(document.querySelectorAll('.doc h2[id]'));
+  window.addEventListener('scroll', function(){
+    document.getElementById('toTop').style.display=window.pageYOffset>400?'block':'none';
+    if(!headings.length) return;
+    var cur=null,pos=window.pageYOffset+100;
+    headings.forEach(function(h){ if(h.offsetTop<=pos) cur=h.id; });
+    document.querySelectorAll('.toc-link.current').forEach(function(l){l.classList.remove('current');});
+    if(cur){var l=document.querySelector('.toc-link[href="#'+cur+'"]'); if(l) l.classList.add('current');}
+  },{passive:true});
+  document.getElementById('toTop').addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+  document.getElementById('burger').addEventListener('click',function(){body.classList.toggle('nav-open');});
+  document.getElementById('backdrop').addEventListener('click',function(){body.classList.remove('nav-open');});
+})();
+</script>
+</body>
+</html>
