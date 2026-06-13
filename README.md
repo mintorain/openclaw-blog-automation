@@ -1,8 +1,24 @@
 # 🦅 오픈클로(openclaw)로 배우는 블로그 자동화 매뉴얼
 
+[![라이브 사이트](https://img.shields.io/badge/%F0%9F%8C%90%20라이브%20사이트-온라인-success)](https://mintorain.github.io/openclaw-blog-automation/)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-배포됨-222?logo=github)](https://mintorain.github.io/openclaw-blog-automation/)
+[![last commit](https://img.shields.io/github/last-commit/mintorain/openclaw-blog-automation)](https://github.com/mintorain/openclaw-blog-automation/commits/main)
+[![built with pandoc](https://img.shields.io/badge/built%20with-pandoc-blue?logo=markdown)](https://pandoc.org/)
+![노코드](https://img.shields.io/badge/노코드-친화적-ff69b4)
+![플랫폼](https://img.shields.io/badge/플랫폼-티스토리%20·%20네이버%20·%20블로거-orange)
+
 코딩을 몰라도 괜찮습니다. **오픈클로(openclaw)에게 한국어로 시켜서** 티스토리·네이버·구글 블로거 글쓰기를 자동화하는 **노코드 교육용 매뉴얼**입니다.
 
 ### 🌐 라이브 사이트 → **https://mintorain.github.io/openclaw-blog-automation/**
+
+---
+
+## 📸 미리보기
+
+| 홈 (플랫폼 선택) | 워크북 (티스토리 편) |
+|:---:|:---:|
+| [![홈 화면](docs/assets/home.png)](https://mintorain.github.io/openclaw-blog-automation/) | [![워크북 화면](docs/assets/tistory.png)](https://mintorain.github.io/openclaw-blog-automation/tistory.html) |
+| 플랫폼별 카드로 시작점 선택 | 사이드바 목차 · 검색 · 색상 콜아웃(`📋 명령`/`✅ 성공`/`🛟 막히면`) |
 
 ---
 
